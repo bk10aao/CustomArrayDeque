@@ -17,9 +17,9 @@ public class CustomArrayDeque<E> implements Deque<E> {
     private int rightPointer;
 
     public CustomArrayDeque() {
-        deque = (E[])new Object[16];
+        deque = (E[]) new Object[16];
         size = 0;
-        leftPointer = rightPointer = 4;
+        leftPointer = rightPointer = 8;
     }
 
     public CustomArrayDeque(int numElements) {
@@ -27,7 +27,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
             throw new IllegalArgumentException();
         int capacity = getNewSize(numElements, 16);
         deque = (E[]) new Object[capacity];
-        leftPointer = rightPointer = capacity / 4;
+        leftPointer = rightPointer = capacity / 2;
     }
 
     public CustomArrayDeque(Collection<? extends E> c) {
@@ -35,28 +35,34 @@ public class CustomArrayDeque<E> implements Deque<E> {
             throw new NullPointerException();
         int capacity = getNewSize(c.size(), 16);
         deque = (E[]) new Object[capacity];
-        leftPointer = rightPointer = capacity / 4;
+        leftPointer = rightPointer = capacity / 2;
         addAll(c);
     }
 
     public boolean add(E item) {
-        if(item == null)
+        if (item == null)
             throw new NullPointerException();
-        if(rightPointer >= deque.length)
+        if (size >= deque.length) {
             expand(size + 1);
+        } else if (rightPointer >= deque.length) {
+            recenter();
+        }
         deque[rightPointer++] = item;
         size++;
         return true;
     }
 
     public boolean addAll(Collection<? extends E> c) {
-        if(c == null)
+        if (c == null)
             throw new NullPointerException();
-        if(c.isEmpty())
+        if (c.isEmpty())
             return false;
-        if(rightPointer + c.size() > deque.length)
+
+        if (size + c.size() > deque.length || rightPointer + c.size() > deque.length) {
             expand(size + c.size());
-        for(E e : c) {
+        }
+
+        for (E e : c) {
             if (e == null)
                 throw new NullPointerException();
             deque[rightPointer++] = e;
@@ -66,10 +72,11 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     public void addFirst(E item) {
-        if(item == null)
+        if (item == null)
             throw new NullPointerException();
-        if(leftPointer <= 0)
+        if (size >= deque.length || leftPointer <= 0) {
             expand(size + 1);
+        }
         deque[--leftPointer] = item;
         size++;
     }
@@ -106,17 +113,24 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
     @Override
     public boolean equals(Object o) {
-        if(this == o)
+        if (o == this)
             return true;
-        if(!(o instanceof Deque<?> other))
+        if (!(o instanceof Collection<?> c))
             return false;
-        if(size != other.size())
+        if (c.size() != size)
             return false;
-        Iterator<?> current = iterator();
-        Iterator<?> otherIterator = other.iterator();
-        while (current.hasNext())
-            if(!Objects.equals(current.next(), otherIterator.next()))
+
+        if (o instanceof CustomArrayDeque<?> other) {
+            return Arrays.equals(
+                    deque, leftPointer, rightPointer,
+                    other.deque, other.leftPointer, other.rightPointer
+            );
+        }
+        Iterator<?> it = c.iterator();
+        for (int i = leftPointer; i < rightPointer; i++) {
+            if (!Objects.equals(deque[i], it.next()))
                 return false;
+        }
         return true;
     }
 
@@ -328,10 +342,6 @@ public class CustomArrayDeque<E> implements Deque<E> {
         return stringBuilder.append("]").toString();
     }
 
-    public int getArraySize() {
-        return deque.length;
-    }
-
     @Override
     public Iterator<E> iterator() {
         return new Iterator<>() {
@@ -394,13 +404,14 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     private void expand(int minimumCapacity) {
-        int oldCapacity = deque.length;
-        int newSize = getNewSize(minimumCapacity, oldCapacity * 2);
+        int newSize = Math.max(deque.length * 2, minimumCapacity);
+        while (newSize < minimumCapacity) {
+            newSize <<= 1;
+        }
         E[] newArray = (E[]) new Object[newSize];
         int currentSize = this.size;
-        int newLeft = newSize / 4;
-        for(int i = 0; i < currentSize; i++)
-            newArray[newLeft + i] = deque[(this.leftPointer + i) % oldCapacity];
+        int newLeft = (newSize - minimumCapacity) / 2;
+        System.arraycopy(deque, this.leftPointer, newArray, newLeft, currentSize);
         deque = newArray;
         this.leftPointer = newLeft;
         this.rightPointer = newLeft + currentSize;
@@ -417,7 +428,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
     private void reset() {
         deque = (E[])new Object[16];
-        leftPointer = rightPointer = 4;
+        leftPointer = rightPointer = 8;
         size = 0;
     }
 
@@ -432,5 +443,18 @@ public class CustomArrayDeque<E> implements Deque<E> {
                 writeIndex++;
             }
         rightPointer = writeIndex;
+    }
+
+    private void recenter() {
+        int newLeft = (deque.length - size) / 2;
+        System.arraycopy(deque, leftPointer, deque, newLeft, size);
+        if (newLeft > leftPointer) {
+            Arrays.fill(deque, leftPointer, newLeft, null);
+        } else if (newLeft < leftPointer) {
+            Arrays.fill(deque, newLeft + size, rightPointer, null);
+        }
+
+        leftPointer = newLeft;
+        rightPointer = leftPointer + size;
     }
 }

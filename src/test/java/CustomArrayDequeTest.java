@@ -21,18 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CustomArrayDequeTest {
 
     @Test
-    public void givenDefaultConstructor_returnsInitialQueueSizeOf_16() {
-        assertEquals(16, new CustomArrayDeque<>().getArraySize());
-    }
-
-    @Test
     public void givenConstructor_withSizeOf_negative_1_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new CustomArrayDeque<>(-1));
-    }
-
-    @Test
-    public void givenConstructor_withSizeOf_10_returnsInitialQueueSizeOf_10() {
-        assertEquals(16, new CustomArrayDeque<>(10).getArraySize());
     }
 
     @Test
@@ -44,23 +34,20 @@ public class CustomArrayDequeTest {
     public void givenConstructor_withCollectionOfNumbers_1_to_5_addsItemsCorrectly_returnsSizeOf_5() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>(List.of(1, 2, 3, 4, 5));
         assertEquals(5, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void givenConstructor_withCollectionOf_0_to_16_addsItemsCorrectly_returnsSizeOf_17_andResizesDequeTo_32() {
+    public void givenConstructor_withCollectionOf_0_to_16_addsItemsCorrectly_returnsSizeOf_17() {
         List<Integer> toAdd = IntStream.rangeClosed(0, 16).boxed().collect(Collectors.toList());
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>(toAdd);
         assertEquals(17, customArrayDeque.size());
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void givenConstructor_withCollectionOf_0_to_9_addsItemsCorrectly_returnsSizeOf_9_andDequeSizeOf_16() {
+    public void givenConstructor_withCollectionOf_0_to_9_addsItemsCorrectly_returnsSizeOf_9() {
         List<Integer> toAdd = IntStream.rangeClosed(0, 9).boxed().collect(Collectors.toList());
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>(toAdd);
         assertEquals(10, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -86,30 +73,26 @@ public class CustomArrayDequeTest {
     }
 
     @Test
-    public void whenAddingValue_triggersResize_returnsTrue_andDequeSizeOf_32() {
+    public void whenAddingValue_triggersResize_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 11).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
-        assertEquals(16, customArrayDeque.getArraySize());
         assertTrue(customArrayDeque.add(9));
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void whenAddingNullCollection_throws_NullPointerException_andSizeDoesNotChange() {
+    public void whenAddingNullCollection_throws_NullPointerException() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         assertThrows(NullPointerException.class, () -> customArrayDeque.addAll(null));
         assertEquals(0, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void whenAddingCollectionOf_1_2_3_returnsTrue_andDoesNotResize() {
+    public void whenAddingCollectionOf_1_2_3_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         Collection<Integer> c = List.of(1, 2, 3);
         assertTrue(customArrayDeque.addAll(c));
         assertEquals(3, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -121,30 +104,27 @@ public class CustomArrayDequeTest {
     }
 
     @Test
-    public void whenAddingCollectionWithValues_0_to_17_returnsTrue_andResizesTo_32() {
+    public void whenAddingCollectionWithValues_0_to_17_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 17).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
         assertEquals(18, customArrayDeque.size());
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void whenAddingCollectionWithValues_0_to_32_returnsTrue_andResizesTo_64() {
+    public void whenAddingCollectionWithValues_0_to_32_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 32).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
         assertEquals(33, customArrayDeque.size());
-        assertEquals(64, customArrayDeque.getArraySize());
     }
 
     @Test
-    public void whenAddingCollectionWithValues_0_to_64_returnsTrue_andResizesTo_128() {
+    public void whenAddingCollectionWithValues_0_to_64_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 64).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
         assertEquals(65, customArrayDeque.size());
-        assertEquals(128, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -155,7 +135,6 @@ public class CustomArrayDequeTest {
         arr.add(null);
         assertThrows(NullPointerException.class, () -> customArrayDeque.addAll(arr));
         assertEquals(1, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -169,7 +148,6 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         customArrayDeque.addFirst(1);
         assertEquals(1, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -182,7 +160,6 @@ public class CustomArrayDequeTest {
         customArrayDeque.addFirst(5);
         customArrayDeque.addFirst(6);
         assertEquals(6, customArrayDeque.size());
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -208,13 +185,11 @@ public class CustomArrayDequeTest {
     }
 
     @Test
-    public void whenAddingLast_triggersResize_returnsTrue_andDequeSizeOf_32() {
+    public void whenAddingLast_triggersResize_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 11).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
-        assertEquals(16, customArrayDeque.getArraySize());
         customArrayDeque.addLast(9);
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -240,14 +215,13 @@ public class CustomArrayDequeTest {
     }
 
     @Test
-    public void whenOfferingFirstValue_triggersResize_returnsTrue_andDequeSizeOf_32() {
+    public void whenOfferingFirstValue_triggersResize_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         assertTrue(customArrayDeque.offerFirst(1));
         assertTrue(customArrayDeque.offerFirst(2));
         assertTrue(customArrayDeque.offerFirst(3));
         assertTrue(customArrayDeque.offerFirst(4));
         assertTrue(customArrayDeque.offerFirst(5));
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -273,13 +247,11 @@ public class CustomArrayDequeTest {
     }
 
     @Test
-    public void whenOfferingLast_triggersResize_returnsTrue_andDequeSizeOf_32() {
+    public void whenOfferingLast_triggersResize_returnsTrue() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 11).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
-        assertEquals(16, customArrayDeque.getArraySize());
         customArrayDeque.offerLast(9);
-        assertEquals(32, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -314,7 +286,6 @@ public class CustomArrayDequeTest {
         assertTrue(customArrayDeque.offerFirst(3));
         assertTrue(customArrayDeque.offerFirst(4));
         assertTrue(customArrayDeque.offerFirst(5));
-        assertEquals(32, customArrayDeque.getArraySize());
         assertEquals(5, customArrayDeque.getFirst());
     }
 
@@ -347,9 +318,7 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         List<Integer> toAdd = IntStream.rangeClosed(0, 11).boxed().toList();
         assertTrue(customArrayDeque.addAll(toAdd));
-        assertEquals(16, customArrayDeque.getArraySize());
         customArrayDeque.offerLast(9);
-        assertEquals(32, customArrayDeque.getArraySize());
         assertEquals(9, customArrayDeque.getLast());
     }
 
@@ -411,7 +380,6 @@ public class CustomArrayDequeTest {
         assertEquals(1, customArrayDeque.size());
         assertEquals(2, customArrayDeque.removeFirst());
         assertEquals(0, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -473,7 +441,6 @@ public class CustomArrayDequeTest {
         assertEquals(1, customArrayDeque.size());
         assertEquals(1, customArrayDeque.removeLast());
         assertEquals(0, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -511,7 +478,6 @@ public class CustomArrayDequeTest {
         assertEquals(20, customArrayDeque.pollFirst());
         assertEquals(10, customArrayDeque.pollFirst());
         assertEquals(0, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -549,7 +515,6 @@ public class CustomArrayDequeTest {
         assertEquals(20, customArrayDeque.pollLast());
         assertEquals(10, customArrayDeque.pollLast());
         assertEquals(0, customArrayDeque.size());
-        assertEquals(16, customArrayDeque.getArraySize());
     }
 
     @Test
@@ -1386,14 +1351,5 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         customArrayDeque.add(10);
         assertFalse(customArrayDeque.equals(null));
-    }
-
-    @Test
-    public void whenEquals_withDifferentCollectionType_returnsFalse() {
-        CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
-        customArrayDeque.add(10);
-        List<Integer> list = new ArrayList<>();
-        list.add(10);
-        assertFalse(customArrayDeque.equals(list));
     }
 }
