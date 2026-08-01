@@ -2,6 +2,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
@@ -9,7 +10,7 @@ public class ArrayDequePerformanceTest {
 
     private static final int ITERATIONS = 100;
     private static final int STRUCTURAL_ITERATIONS = 10;
-    private static final int WARMUP_RUNS = 20000;
+    private static final int WARMUP_RUNS = 20_000;
 
     private static long longBlackhole = 0;
     private static boolean boolBlackhole = false;
@@ -17,373 +18,617 @@ public class ArrayDequePerformanceTest {
     private static Object objBlackhole = null;
 
     public static void main(String[] args) {
-        int[] sizes = { 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000 };
+        int[] sizes = {10_000, 20_000, 30_000, 40_000, 50_000,
+                60_000, 70_000, 80_000, 90_000, 100_000};
 
         long[][] results = new long[sizes.length][];
-        Random random = new Random();
+        Random random = new Random(42);
 
-        System.out.println("Warming up JIT Compiler...");
         runGlobalWarmup(random);
-        System.out.println("Warm-up complete. Starting full execution.");
+        System.out.println("Warm-up complete. Starting benchmarks.");
 
         for (int i = 0; i < sizes.length; i++) {
             int size = sizes[i];
             System.out.println("Benchmarking size: " + size);
 
-            long addFirstTime = benchmarkAddFirst(size, random);
-            long addLastTime = benchmarkAddLast(size, random);
-            long getFirstTime = benchmarkGetFirst(size);
-            long getLastTime = benchmarkGetLast(size);
-            long removeFirstTime = benchmarkRemoveFirst(size, random);
-            long removeLastTime = benchmarkRemoveLast(size, random);
-            long containsTime = benchmarkContains(size, random);
-            long peekFirstTime = benchmarkPeekFirst(size);
-            long peekLastTime = benchmarkPeekLast(size);
-            long sizeTime = benchmarkSize(size);
-            long isEmptyTime = benchmarkIsEmpty(size);
-            long clearTime = benchmarkClear(size);
-            long toArrayTime = benchmarkToArray(size);
-            long equalsTime = benchmarkEquals(size);
-            long toStringTime = benchmarkToString(size);
-            long iteratorTime = benchmarkIterator(size);
-            long descendingIteratorTime = benchmarkDescendingIterator(size);
-            long addAllTime = benchmarkAddAll(size, random);
-            long removeAllTime = benchmarkRemoveAll(size, random);
-            long retainAllTime = benchmarkRetainAll(size, random);
-
             results[i] = new long[]{
-                    size, addFirstTime, addLastTime, getFirstTime, getLastTime, removeFirstTime,
-                    removeLastTime, containsTime, peekFirstTime, peekLastTime, sizeTime,
-                    isEmptyTime, clearTime, toArrayTime, equalsTime, toStringTime,
-                    iteratorTime, descendingIteratorTime, addAllTime, removeAllTime, retainAllTime
+                    size,
+                    // ----- insertion -----
+                    benchmarkAdd(size, random),
+                    benchmarkAddFirst(size, random),
+                    benchmarkAddLast(size, random),
+                    benchmarkOffer(size, random),
+                    benchmarkOfferFirst(size, random),
+                    benchmarkOfferLast(size, random),
+                    benchmarkPush(size, random),
+                    benchmarkAddAll(size, random),
+                    // ----- access / query -----
+                    benchmarkElement(size),
+                    benchmarkGetFirst(size),
+                    benchmarkGetLast(size),
+                    benchmarkPeek(size),
+                    benchmarkPeekFirst(size),
+                    benchmarkPeekLast(size),
+                    benchmarkContains(size, random),
+                    benchmarkContainsAll(size, random),
+                    benchmarkSize(size),
+                    benchmarkIsEmpty(size),
+                    // ----- removal -----
+                    benchmarkRemove(size),
+                    benchmarkRemoveFirst(size),
+                    benchmarkRemoveLast(size),
+                    benchmarkPoll(size),
+                    benchmarkPollFirst(size),
+                    benchmarkPollLast(size),
+                    benchmarkPop(size),
+                    benchmarkRemoveObject(size, random),
+                    benchmarkRemoveFirstOccurrence(size, random),
+                    benchmarkRemoveLastOccurrence(size, random),
+                    benchmarkRemoveAll(size),
+                    benchmarkRetainAll(size),
+                    benchmarkClear(size),
+                    // ----- conversion / views -----
+                    benchmarkToArray(size),
+                    benchmarkToArrayTyped(size),
+                    benchmarkToString(size),
+                    benchmarkEquals(size),
+                    benchmarkIterator(size),
+                    benchmarkDescendingIterator(size)
             };
         }
 
-        writeResultsToCSV(sizes, results);
-
-        if (boolBlackhole && longBlackhole == 9999) {
-            System.out.println("Sink data checksum: " + intBlackhole);
-        }
+        writeResultsToCSV(results);
     }
 
+    // =========================================================================
+    // Factory
+    // =========================================================================
+    private static Deque<Integer> newDeque() {
+        return new ArrayDeque<>();
+    }
+
+    private static void populate(Deque<Integer> d, int size) {
+        for (int i = 0; i < size; i++) d.addLast(i);
+    }
+
+    // =========================================================================
+    // Warm-up
+    // =========================================================================
     private static void runGlobalWarmup(Random random) {
-        ArrayDeque<Integer> warmDeque = new ArrayDeque<>();
+        Deque<Integer> w = newDeque();
         for (int i = 0; i < WARMUP_RUNS; i++) {
-            warmDeque.addLast(i);
-            warmDeque.addFirst(i);
-            boolBlackhole ^= warmDeque.contains(i);
-            objBlackhole = warmDeque.peekFirst();
-            objBlackhole = warmDeque.peekLast();
+            w.add(i);
+            w.addFirst(i);
+            w.offer(i);
+            w.offerFirst(i);
+            w.push(i);
+            boolBlackhole ^= w.contains(i);
+            objBlackhole = w.peek();
+            objBlackhole = w.peekFirst();
+            objBlackhole = w.peekLast();
+            objBlackhole = w.element();
         }
-        for (int i = 0; i < WARMUP_RUNS / 2; i++) {
-            warmDeque.removeFirst();
-            warmDeque.removeLast();
+        for (int i = 0; i < WARMUP_RUNS / 4; i++) {
+            w.poll();
+            w.pollFirst();
+            w.pollLast();
+            w.pop();
+            w.remove();
+            w.removeFirst();
+            w.removeLast();
         }
         System.gc();
     }
 
-    private static long benchmarkAddFirst(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            populateDeque(deque, size);
-            long start = System.nanoTime();
-            deque.addFirst(random.nextInt());
-            totalElapsedTime += (System.nanoTime() - start);
+    // =========================================================================
+    // Insertion
+    // =========================================================================
+    private static long benchmarkAdd(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.add(r.nextInt());
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
     }
 
-    private static long benchmarkAddLast(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            populateDeque(deque, size);
-            long start = System.nanoTime();
-            deque.addLast(random.nextInt());
-            totalElapsedTime += (System.nanoTime() - start);
+    private static long benchmarkAddFirst(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.addFirst(r.nextInt());
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkAddLast(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.addLast(r.nextInt());
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkOffer(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.offer(r.nextInt());
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkOfferFirst(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.offerFirst(r.nextInt());
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkOfferLast(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.offerLast(r.nextInt());
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkPush(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.push(r.nextInt());
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkAddAll(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            List<Integer> src = new ArrayList<>(size);
+            for (int j = 0; j < size; j++) src.add(r.nextInt());
+            long s = System.nanoTime();
+            d.addAll(src);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    // =========================================================================
+    // Access / Query
+    // =========================================================================
+    private static long benchmarkElement(int size) {
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.element();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
+        }
+        return t / ITERATIONS;
     }
 
     private static long benchmarkGetFirst(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            Integer val = deque.getFirst();
-            totalElapsedTime += (System.nanoTime() - start);
-            if (val != null) intBlackhole += val;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.getFirst();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
     private static long benchmarkGetLast(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            Integer val = deque.getLast();
-            totalElapsedTime += (System.nanoTime() - start);
-            if (val != null) intBlackhole += val;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.getLast();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
-    private static long benchmarkRemoveFirst(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            populateDeque(deque, size);
-            long start = System.nanoTime();
-            deque.removeFirst();
-            totalElapsedTime += (System.nanoTime() - start);
+    private static long benchmarkPeek(int size) {
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.peek();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
-    }
-
-    private static long benchmarkRemoveLast(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            populateDeque(deque, size);
-            long start = System.nanoTime();
-            deque.removeLast();
-            totalElapsedTime += (System.nanoTime() - start);
-        }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
-    }
-
-    private static long benchmarkContains(int size, Random random) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            int target = random.nextInt(size * 2);
-            long start = System.nanoTime();
-            boolean checked = deque.contains(target);
-            totalElapsedTime += (System.nanoTime() - start);
-            boolBlackhole ^= checked;
-        }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
     private static long benchmarkPeekFirst(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            Integer val = deque.peekFirst();
-            totalElapsedTime += (System.nanoTime() - start);
-            if (val != null) intBlackhole += val;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.peekFirst();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
     private static long benchmarkPeekLast(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            Integer val = deque.peekLast();
-            totalElapsedTime += (System.nanoTime() - start);
-            if (val != null) intBlackhole += val;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer v = d.peekLast();
+            t += System.nanoTime() - s;
+            if (v != null) intBlackhole += v;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
+    }
+
+    private static long benchmarkContains(int size, Random r) {
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            int target = r.nextInt(size * 2);
+            long s = System.nanoTime();
+            boolBlackhole ^= d.contains(target);
+            t += System.nanoTime() - s;
+        }
+        return t / ITERATIONS;
+    }
+
+    private static long benchmarkContainsAll(int size, Random r) {
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        List<Integer> probe = new ArrayList<>();
+        for (int i = 0; i < Math.min(100, size); i++) probe.add(r.nextInt(size));
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            boolBlackhole ^= d.containsAll(probe);
+            t += System.nanoTime() - s;
+        }
+        return t / ITERATIONS;
     }
 
     private static long benchmarkSize(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            int s = deque.size();
-            totalElapsedTime += (System.nanoTime() - start);
-            intBlackhole += s;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            intBlackhole += d.size();
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
     private static long benchmarkIsEmpty(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            boolean empty = deque.isEmpty();
-            totalElapsedTime += (System.nanoTime() - start);
-            boolBlackhole ^= empty;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            boolBlackhole ^= d.isEmpty();
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
+    }
+
+    // =========================================================================
+    // Removal
+    // =========================================================================
+    private static long benchmarkRemove(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.remove();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveFirst(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.removeFirst();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveLast(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.removeLast();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkPoll(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            objBlackhole = d.poll();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkPollFirst(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            objBlackhole = d.pollFirst();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkPollLast(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            objBlackhole = d.pollLast();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkPop(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.pop();
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveObject(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            int target = r.nextInt(size);
+            long s = System.nanoTime();
+            boolBlackhole ^= d.remove(target);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveFirstOccurrence(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            int target = r.nextInt(size);
+            long s = System.nanoTime();
+            boolBlackhole ^= d.removeFirstOccurrence(target);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveLastOccurrence(int size, Random r) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            int target = r.nextInt(size);
+            long s = System.nanoTime();
+            boolBlackhole ^= d.removeLastOccurrence(target);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRemoveAll(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            List<Integer> half = new ArrayList<>();
+            for (int j = 0; j < size; j++) {
+                d.addLast(j);
+                if (j % 2 == 0) half.add(j);
+            }
+            long s = System.nanoTime();
+            d.removeAll(half);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkRetainAll(int size) {
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            List<Integer> half = new ArrayList<>();
+            for (int j = 0; j < size; j++) {
+                d.addLast(j);
+                if (j % 2 == 0) half.add(j);
+            }
+            long s = System.nanoTime();
+            d.retainAll(half);
+            t += System.nanoTime() - s;
+        }
+        return t / STRUCTURAL_ITERATIONS;
     }
 
     private static long benchmarkClear(int size) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            populateDeque(deque, size);
-            long start = System.nanoTime();
-            deque.clear();
-            totalElapsedTime += (System.nanoTime() - start);
+        long t = 0;
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            Deque<Integer> d = newDeque();
+            populate(d, size);
+            long s = System.nanoTime();
+            d.clear();
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
     }
 
+    // =========================================================================
+    // Conversion / Views
+    // =========================================================================
     private static long benchmarkToArray(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            Object[] arr = deque.toArray();
-            totalElapsedTime += (System.nanoTime() - start);
-            intBlackhole += arr.length;
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Object[] a = d.toArray();
+            t += System.nanoTime() - s;
+            intBlackhole += a.length;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
-    private static long benchmarkEquals(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque1 = new ArrayDeque<>();
-        ArrayDeque<Integer> deque2 = new ArrayDeque<>();
-        populateDeque(deque1, size);
-        populateDeque(deque2, size);
-        for (int iter = 0; iter < ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            boolean equals = deque1.equals(deque2);
-            totalElapsedTime += (System.nanoTime() - start);
-            boolBlackhole ^= equals;
+    private static long benchmarkToArrayTyped(int size) {
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        Integer[] dest = new Integer[0];
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            Integer[] a = d.toArray(dest);
+            t += System.nanoTime() - s;
+            intBlackhole += a.length;
         }
-        return totalElapsedTime / ITERATIONS;
+        return t / ITERATIONS;
     }
 
     private static long benchmarkToString(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            String s = deque.toString();
-            totalElapsedTime += (System.nanoTime() - start);
-            intBlackhole += s.length();
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            long s = System.nanoTime();
+            String str = d.toString();
+            t += System.nanoTime() - s;
+            intBlackhole += str.length();
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
+    }
+
+    private static long benchmarkEquals(int size) {
+        long t = 0;
+        Deque<Integer> a = newDeque();
+        Deque<Integer> b = newDeque();
+        populate(a, size);
+        populate(b, size);
+        for (int i = 0; i < ITERATIONS; i++) {
+            long s = System.nanoTime();
+            boolBlackhole ^= a.equals(b);
+            t += System.nanoTime() - s;
+        }
+        return t / ITERATIONS;
     }
 
     private static long benchmarkIterator(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            var iterator = deque.iterator();
-            while (iterator.hasNext()) {
-                intBlackhole += iterator.next();
-            }
-            totalElapsedTime += (System.nanoTime() - start);
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            long s = System.nanoTime();
+            for (Integer v : d) intBlackhole += v;
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
     }
 
     private static long benchmarkDescendingIterator(int size) {
-        long totalElapsedTime = 0;
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        populateDeque(deque, size);
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            long start = System.nanoTime();
-            var iterator = deque.descendingIterator();
-            while (iterator.hasNext()) {
-                intBlackhole += iterator.next();
-            }
-            totalElapsedTime += (System.nanoTime() - start);
+        long t = 0;
+        Deque<Integer> d = newDeque();
+        populate(d, size);
+        for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
+            long s = System.nanoTime();
+            var it = d.descendingIterator();
+            while (it.hasNext()) intBlackhole += it.next();
+            t += System.nanoTime() - s;
         }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
+        return t / STRUCTURAL_ITERATIONS;
     }
 
-    private static long benchmarkAddAll(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            List<Integer> source = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                source.add(random.nextInt());
-            }
-            long start = System.nanoTime();
-            deque.addAll(source);
-            totalElapsedTime += (System.nanoTime() - start);
-        }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
-    }
+    // =========================================================================
+    // CSV output
+    // =========================================================================
+    private static void writeResultsToCSV(long[][] results) {
+        String file = "ArrayDeque_performance.csv";
 
-    private static long benchmarkRemoveAll(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            List<Integer> targetList = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                int val = i;
-                deque.addLast(val);
-                if (i % 2 == 0) {
-                    targetList.add(val);
-                }
-            }
-            long start = System.nanoTime();
-            deque.removeAll(targetList);
-            totalElapsedTime += (System.nanoTime() - start);
-        }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
-    }
+        String header =
+                "Size;" +
+                        "add(E);addFirst(E);addLast(E);offer(E);offerFirst(E);offerLast(E);push(E);addAll(Collection);" +
+                        "element();getFirst();getLast();peek();peekFirst();peekLast();contains(Object);containsAll(Collection);size();isEmpty();" +
+                        "remove();removeFirst();removeLast();poll();pollFirst();pollLast();pop();remove(Object);" +
+                        "removeFirstOccurrence(Object);removeLastOccurrence(Object);removeAll(Collection);retainAll(Collection);clear();" +
+                        "toArray();toArray(T[]);toString();equals(Object);iterator();descendingIterator()";
 
-    private static long benchmarkRetainAll(int size, Random random) {
-        long totalElapsedTime = 0;
-        for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            ArrayDeque<Integer> deque = new ArrayDeque<>();
-            List<Integer> targetList = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                int val = i;
-                deque.addLast(val);
-                if (i % 2 == 0) {
-                    targetList.add(val);
-                }
-            }
-            long start = System.nanoTime();
-            deque.retainAll(targetList);
-            totalElapsedTime += (System.nanoTime() - start);
-        }
-        return totalElapsedTime / STRUCTURAL_ITERATIONS;
-    }
-
-    private static void populateDeque(ArrayDeque<Integer> deque, int size) {
-        for (int i = 0; i < size; i++) {
-            deque.addLast(i);
-        }
-    }
-
-    private static void writeResultsToCSV(int[] sizes, long[][] results) {
-        String csvFile = "ArrayDeque_performance.csv";
-        try (FileWriter writer = new FileWriter(csvFile)) {
-            writer.append("Size;addFirst(E);addLast(E);getFirst();getLast();removeFirst();removeLast();"
-                    + "contains(Object);peekFirst();peekLast();size();isEmpty();clear();toArray();"
-                    + "equals(Object);toString();iterator();descendingIterator();addAll(Collection);"
-                    + "removeAll(Collection);retainAll(Collection)\n");
-
+        try (FileWriter w = new FileWriter(file)) {
+            w.append(header).append('\n');
             for (long[] row : results) {
                 StringBuilder sb = new StringBuilder();
                 sb.append(row[0]);
-                for (int j = 1; j < row.length; j++) {
-                    sb.append(";").append(row[j]);
-                }
-                sb.append("\n");
-                writer.append(sb.toString());
+                for (int j = 1; j < row.length; j++) sb.append(';').append(row[j]);
+                w.append(sb).append('\n');
             }
-            System.out.println("Results successfully documented in " + csvFile);
+            System.out.println("Wrote " + file);
         } catch (IOException e) {
-            System.err.println("Failed to write performance records to CSV file: " + e.getMessage());
+            System.err.println("CSV write failed: " + e.getMessage());
         }
     }
 }
