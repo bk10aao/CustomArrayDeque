@@ -8,8 +8,7 @@ import java.util.Random;
 
 public class CustomArrayDequePerformanceTest {
 
-    // Toggle which implementation to measure
-    private static final boolean USE_CUSTOM = true;   // false → JDK ArrayDeque
+    private static final boolean USE_CUSTOM = true;
 
     private static final int ITERATIONS = 100;
     private static final int STRUCTURAL_ITERATIONS = 10;
@@ -37,7 +36,6 @@ public class CustomArrayDequePerformanceTest {
 
             results[i] = new long[]{
                     size,
-                    // ----- insertion -----
                     benchmarkAdd(size, random),
                     benchmarkAddFirst(size, random),
                     benchmarkAddLast(size, random),
@@ -46,7 +44,6 @@ public class CustomArrayDequePerformanceTest {
                     benchmarkOfferLast(size, random),
                     benchmarkPush(size, random),
                     benchmarkAddAll(size, random),
-                    // ----- access / query -----
                     benchmarkElement(size),
                     benchmarkGetFirst(size),
                     benchmarkGetLast(size),
@@ -57,7 +54,6 @@ public class CustomArrayDequePerformanceTest {
                     benchmarkContainsAll(size, random),
                     benchmarkSize(size),
                     benchmarkIsEmpty(size),
-                    // ----- removal -----
                     benchmarkRemove(size),
                     benchmarkRemoveFirst(size),
                     benchmarkRemoveLast(size),
@@ -71,7 +67,6 @@ public class CustomArrayDequePerformanceTest {
                     benchmarkRemoveAll(size),
                     benchmarkRetainAll(size),
                     benchmarkClear(size),
-                    // ----- conversion / views -----
                     benchmarkToArray(size),
                     benchmarkToArrayTyped(size),
                     benchmarkToString(size),
@@ -84,9 +79,6 @@ public class CustomArrayDequePerformanceTest {
         writeResultsToCSV(results);
     }
 
-    // =========================================================================
-    // Factory
-    // =========================================================================
     private static Deque<Integer> newDeque() {
         return USE_CUSTOM ? new CustomArrayDeque<>() : new ArrayDeque<>();
     }
@@ -95,9 +87,6 @@ public class CustomArrayDequePerformanceTest {
         for (int i = 0; i < size; i++) d.addLast(i);
     }
 
-    // =========================================================================
-    // Warm-up
-    // =========================================================================
     private static void runGlobalWarmup(Random random) {
         Deque<Integer> w = newDeque();
         for (int i = 0; i < WARMUP_RUNS; i++) {
@@ -124,9 +113,6 @@ public class CustomArrayDequePerformanceTest {
         System.gc();
     }
 
-    // =========================================================================
-    // Insertion
-    // =========================================================================
     private static long benchmarkAdd(int size, Random r) {
         long t = 0;
         for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
@@ -224,9 +210,6 @@ public class CustomArrayDequePerformanceTest {
         return t / STRUCTURAL_ITERATIONS;
     }
 
-    // =========================================================================
-    // Access / Query
-    // =========================================================================
     private static long benchmarkElement(int size) {
         long t = 0;
         Deque<Integer> d = newDeque();
@@ -356,9 +339,6 @@ public class CustomArrayDequePerformanceTest {
         return t / ITERATIONS;
     }
 
-    // =========================================================================
-    // Removal
-    // =========================================================================
     private static long benchmarkRemove(int size) {
         long t = 0;
         for (int i = 0; i < STRUCTURAL_ITERATIONS; i++) {
@@ -526,9 +506,6 @@ public class CustomArrayDequePerformanceTest {
         return t / STRUCTURAL_ITERATIONS;
     }
 
-    // =========================================================================
-    // Conversion / Views
-    // =========================================================================
     private static long benchmarkToArray(int size) {
         long t = 0;
         Deque<Integer> d = newDeque();
@@ -608,9 +585,6 @@ public class CustomArrayDequePerformanceTest {
         return t / STRUCTURAL_ITERATIONS;
     }
 
-    // =========================================================================
-    // CSV output
-    // =========================================================================
     private static void writeResultsToCSV(long[][] results) {
         String file = USE_CUSTOM
                 ? "CustomArrayDeque_performance.csv"
