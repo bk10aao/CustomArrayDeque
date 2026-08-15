@@ -146,6 +146,8 @@ Notes:
 #### Note: The following performance charts are designed to be viewed in dark mode.
 
 ![Heatmap](PerformanceCharts/heatmap.png)
+![Constructor](PerformanceCharts/plot_constructor__.png)
+![ConstructCollection](PerformanceCharts/plot_constructor_Collection_.png)
 ![add](PerformanceCharts/plot_add_E_.png)
 ![addAll](PerformanceCharts/plot_addAll_Collection_.png)
 ![addFirst](PerformanceCharts/plot_addFirst_E_.png)
