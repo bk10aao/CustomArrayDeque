@@ -1,3 +1,5 @@
+package customdeque;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
@@ -52,7 +54,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws IllegalArgumentException if {@code numElements < 0}
      */
     public CustomArrayDeque(final int numElements) {
-        if (numElements < 0)
+        if(numElements < 0)
             throw new IllegalArgumentException();
         int capacity = getNewSize(numElements);
         deque = (E[]) new Object[capacity];
@@ -83,11 +85,11 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified element is null
      */
     public boolean add(final E item) {
-        if (item == null)
+        if(item == null)
             throw new NullPointerException();
-        if (size >= deque.length) {
+        if(size >= deque.length)
             expand(size + 1);
-        } else if (rightPointer >= deque.length)
+        else if(rightPointer >= deque.length)
             recenter();
         deque[rightPointer++] = item;
         size++;
@@ -95,7 +97,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     /**
-     * Adds all of the elements in the specified collection to the tail of this deque,
+     * Adds all the elements in the specified collection to the tail of this deque,
      * in the order that they are returned by the specified collection's iterator.
      *
      * @param c collection containing elements to be added to this deque
@@ -103,14 +105,14 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified collection or any of its elements is null
      */
     public boolean addAll(final Collection<? extends E> c) {
-        if (c == null)
+        if(c == null)
             throw new NullPointerException();
-        if (c.isEmpty())
+        if(c.isEmpty())
             return false;
-        if (size + c.size() > deque.length || rightPointer + c.size() > deque.length)
+        if(size + c.size() > deque.length || rightPointer + c.size() > deque.length)
             expand(size + c.size());
-        for (E e : c) {
-            if (e == null)
+        for(E e : c) {
+            if(e == null)
                 throw new NullPointerException();
             deque[rightPointer++] = e;
             size++;
@@ -125,9 +127,9 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified element is null
      */
     public void addFirst(final E item) {
-        if (item == null)
+        if(item == null)
             throw new NullPointerException();
-        if (size >= deque.length || leftPointer <= 0)
+        if(size >= deque.length || leftPointer <= 0)
             expand(size + 1);
         deque[--leftPointer] = item;
         size++;
@@ -144,7 +146,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     /**
-     * Removes all of the elements from this deque. The deque will be empty after this call returns.
+     * Removes all the elements from this deque. The deque will be empty after this call returns.
      */
     public void clear() {
         reset();
@@ -160,23 +162,23 @@ public class CustomArrayDeque<E> implements Deque<E> {
         if(size == 0)
             return false;
         for(int i = leftPointer; i < rightPointer; i++)
-            if (deque[i] != null && deque[i].equals(o)) return true;
+            if(deque[i] != null && deque[i].equals(o)) return true;
         return false;
     }
 
     /**
-     * Returns {@code true} if this deque contains all of the elements in the specified collection.
+     * Returns {@code true} if this deque contains all the elements in the specified collection.
      *
      * @param c collection to be checked for containment in this deque
-     * @return {@code true} if this deque contains all of the elements in the specified collection
+     * @return {@code true} if this deque contains all the elements in the specified collection
      * @throws NullPointerException if the specified collection is null
      */
     public boolean containsAll(final Collection<?> c) {
         requireNonNull(c);
         Set<?> set = (c instanceof Set<?>) ? (Set<?>) c : new HashSet<>(c);
         for(int i = leftPointer; i < rightPointer; i++)
-            if (deque[i] != null && set.remove(deque[i]))
-                if (set.isEmpty())
+            if(deque[i] != null && set.remove(deque[i]))
+                if(set.isEmpty())
                     return true;
         return set.isEmpty();
     }
@@ -201,19 +203,19 @@ public class CustomArrayDeque<E> implements Deque<E> {
      */
     @Override
     public boolean equals(final Object o) {
-        if (o == this)
+        if(o == this)
             return true;
-        if (!(o instanceof Collection<?> c))
+        if(!(o instanceof Collection<?> c))
             return false;
-        if (c.size() != size)
+        if(c.size() != size)
             return false;
-        if (o instanceof CustomArrayDeque<?> other)
+        if(o instanceof CustomArrayDeque<?> other)
             return Arrays.equals(deque, leftPointer, rightPointer,
                 other.deque, other.leftPointer, other.rightPointer
         );
         Iterator<?> it = c.iterator();
-        for (int i = leftPointer; i < rightPointer; i++)
-            if (!Objects.equals(deque[i], it.next()))
+        for(int i = leftPointer; i < rightPointer; i++)
+            if(!Objects.equals(deque[i], it.next()))
                 return false;
         return true;
     }
@@ -270,9 +272,10 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified element is null
      */
     public boolean offerFirst(final E item) {
+        requireNonNull(item);
         if(item == null)
             throw new NullPointerException();
-        if (leftPointer <= 0)
+        if(leftPointer <= 0)
             expand(size + 1);
         deque[--leftPointer] = item;
         size++;
@@ -287,8 +290,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified element is null
      */
     public boolean offerLast(final E item) {
-        if(item == null)
-            throw new NullPointerException();
+        requireNonNull(item);
         if(rightPointer >= deque.length)
             expand(size + 1);
         deque[rightPointer++] = item;
@@ -411,6 +413,28 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     /**
+     * Removes all of this deque's elements that are also contained in the specified collection.
+     *
+     * @param c collection containing elements to be removed from this deque
+     * @return {@code true} if this deque changed as a result of the call
+     * @throws NullPointerException if the specified collection is null
+     */
+    public boolean removeAll(final Collection<?> c) {
+        requireNonNull(c);
+        Set<?> set = (c instanceof Set<?>) ? (Set<?>) c : new HashSet<>(c);
+        boolean modified = false;
+        for(int i = leftPointer; i < rightPointer; i++)
+            if(deque[i] != null && set.contains(deque[i])) {
+                deque[i] = null;
+                size--;
+                modified = true;
+            }
+        if(modified)
+            shiftElements();
+        return modified;
+    }
+
+    /**
      * Retrieves and removes the first element of this deque.
      *
      * @return the head of this deque
@@ -449,10 +473,10 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @return {@code true} if the element was found and removed
      */
     public boolean removeFirstOccurrence(final Object o) {
-        if (size == 0)
+        if(size == 0)
             return false;
-        for (int i = leftPointer; i < rightPointer; i++)
-            if (deque[i] != null && deque[i].equals(o))
+        for(int i = leftPointer; i < rightPointer; i++)
+            if(deque[i] != null && deque[i].equals(o))
                 return removeInnerElement(i);
         return false;
     }
@@ -464,34 +488,12 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @return {@code true} if the element was found and removed
      */
     public boolean removeLastOccurrence(final Object o) {
-        if (size == 0)
+        if(size == 0)
             return false;
-        for (int i = rightPointer - 1; i >= leftPointer; i--)
-            if (deque[i] != null && deque[i].equals(o))
+        for(int i = rightPointer - 1; i >= leftPointer; i--)
+            if(deque[i] != null && deque[i].equals(o))
                 return removeInnerElement(i);
         return false;
-    }
-
-    /**
-     * Removes all of this deque's elements that are also contained in the specified collection.
-     *
-     * @param c collection containing elements to be removed from this deque
-     * @return {@code true} if this deque changed as a result of the call
-     * @throws NullPointerException if the specified collection is null
-     */
-    public boolean removeAll(final Collection<?> c) {
-        requireNonNull(c);
-        Set<?> set = (c instanceof Set<?>) ? (Set<?>) c : new HashSet<>(c);
-        boolean modified = false;
-        for(int i = leftPointer; i < rightPointer; i++)
-            if (deque[i] != null && set.contains(deque[i])) {
-                deque[i] = null;
-                size--;
-                modified = true;
-            }
-        if(modified)
-            shiftElements();
-        return modified;
     }
 
     /**
@@ -506,7 +508,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
         Set<?> set = (c instanceof Set<?>) ? (Set<?>) c : new HashSet<>(c);
         boolean modified = false;
         for(int i = leftPointer; i < rightPointer; i++)
-            if (deque[i] != null && !set.contains(deque[i])) {
+            if(deque[i] != null && !set.contains(deque[i])) {
                 deque[i] = null;
                 size--;
                 modified = true;
@@ -526,16 +528,16 @@ public class CustomArrayDeque<E> implements Deque<E> {
     }
 
     /**
-     * Returns an array containing all of the elements in this deque in proper sequence.
+     * Returns an array containing all the elements in this deque in proper sequence.
      *
-     * @return an array containing all of the elements in this deque
+     * @return an array containing all the elements in this deque
      */
     public Object[] toArray() {
         return Arrays.copyOfRange(deque, leftPointer, rightPointer);
     }
 
     /**
-     * Returns an array containing all of the elements in this deque in proper sequence;
+     * Returns an array containing all the elements in this deque in proper sequence;
      * the runtime type of the returned array is that of the specified array.
      *
      * @param a the array into which the elements of the deque are to be stored, if it is big enough;
@@ -545,7 +547,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
      * @throws NullPointerException if the specified array is null
      */
     public <T> T[] toArray(final T[] a) {
-        Objects.requireNonNull(a);
+        requireNonNull(a);
         if(a.length < size)
             return (T[]) Arrays.copyOfRange(deque, leftPointer, rightPointer, a.getClass());
         System.arraycopy(deque, leftPointer, a, 0, size);
@@ -591,7 +593,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
             @Override
             public E next() {
-                if (!hasNext())
+                if(!hasNext())
                     throw new NoSuchElementException();
                 canRemove = true;
                 return (E) snapshot[cursor++];
@@ -599,7 +601,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
             @Override
             public void remove() {
-                if (!canRemove)
+                if(!canRemove)
                     throw new IllegalStateException();
                 CustomArrayDeque.this.remove(snapshot[cursor - 1]);
                 canRemove = false;
@@ -626,7 +628,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
             @Override
             public E next() {
-                if (!hasNext())
+                if(!hasNext())
                     throw new NoSuchElementException();
                 canRemove = true;
                 return (E) snapshot[cursor--];
@@ -634,7 +636,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
             @Override
             public void remove() {
-                if (!canRemove)
+                if(!canRemove)
                     throw new IllegalStateException();
                 CustomArrayDeque.this.remove(snapshot[cursor + 1]);
                 canRemove = false;
@@ -644,7 +646,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
 
     private void expand(final int minimumCapacity) {
         int newSize = Math.max(deque.length * 2, minimumCapacity);
-        while (newSize < minimumCapacity)
+        while(newSize < minimumCapacity)
             newSize <<= 1;
         E[] newArray = (E[]) new Object[newSize];
         int currentSize = this.size;
@@ -658,7 +660,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
     private static int getNewSize(final int minimumCapacity) {
         int newSize = 16;
         while(newSize < minimumCapacity)
-            if ((newSize <<= 1) <= 0)
+            if((newSize <<= 1) <= 0)
                 throw new IllegalStateException();
         return newSize;
     }
@@ -672,8 +674,8 @@ public class CustomArrayDeque<E> implements Deque<E> {
     private void shiftElements() {
         int writeIndex = leftPointer;
         for(int readIndex = leftPointer; readIndex < rightPointer; readIndex++)
-            if (deque[readIndex] != null) {
-                if (readIndex != writeIndex) {
+            if(deque[readIndex] != null) {
+                if(readIndex != writeIndex) {
                     deque[writeIndex] = deque[readIndex];
                     deque[readIndex] = null;
                 }
@@ -685,9 +687,9 @@ public class CustomArrayDeque<E> implements Deque<E> {
     private void recenter() {
         int newLeft = (deque.length - size) / 2;
         System.arraycopy(deque, leftPointer, deque, newLeft, size);
-        if (newLeft > leftPointer)
+        if(newLeft > leftPointer)
             Arrays.fill(deque, leftPointer, newLeft, null);
-        else if (newLeft < leftPointer)
+        else if(newLeft < leftPointer)
             Arrays.fill(deque, newLeft + size, rightPointer, null);
         leftPointer = newLeft;
         rightPointer = leftPointer + size;
@@ -697,7 +699,7 @@ public class CustomArrayDeque<E> implements Deque<E> {
         deque[i] = null;
         int leftDistance = i - leftPointer;
         int rightDistance = (rightPointer - 1) - i;
-        if (leftDistance < rightDistance) {
+        if(leftDistance < rightDistance) {
             System.arraycopy(deque, leftPointer, deque, leftPointer + 1, leftDistance);
             deque[leftPointer] = null;
             leftPointer++;

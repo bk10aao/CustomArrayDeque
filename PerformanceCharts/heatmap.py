@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load data files
-custom_df = pd.read_csv('CustomArrayDeque_performance.csv', sep=';')
-native_df = pd.read_csv('ArrayDeque_performance.csv', sep=';')
+custom_df = pd.read_csv('CustomArrayDequeV1_jmh_performance_pivoted.csv', sep=';')
+native_df = pd.read_csv('ArrayDeque_jmh_performance_pivoted.csv', sep=';')
 
 # Clean columns
 custom_df.columns = [c.replace('"', '').strip() for c in custom_df.columns]

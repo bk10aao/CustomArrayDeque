@@ -1,5 +1,8 @@
+package customdeque;
+
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,6 +15,7 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -1297,7 +1301,7 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         customArrayDeque.add(10);
         customArrayDeque.add(20);
-        assertTrue(customArrayDeque.equals(customArrayDeque));
+        assertEquals(customArrayDeque, customArrayDeque);
     }
 
     @Test
@@ -1310,8 +1314,8 @@ public class CustomArrayDequeTest {
         deque2.add(10);
         deque2.add(20);
         deque2.add(30);
-        assertTrue(deque1.equals(deque2));
-        assertTrue(deque2.equals(deque1));
+        assertEquals(deque1, deque2);
+        assertEquals(deque2, deque1);
     }
 
     @Test
@@ -1319,10 +1323,10 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> customDeque = new CustomArrayDeque<>();
         customDeque.add(10);
         customDeque.add(20);
-        java.util.ArrayDeque<Integer> standardDeque = new java.util.ArrayDeque<>();
+        ArrayDeque<Integer> standardDeque = new ArrayDeque<>();
         standardDeque.add(10);
         standardDeque.add(20);
-        assertTrue(customDeque.equals(standardDeque));
+        assertEquals(customDeque, standardDeque);
     }
 
     @Test
@@ -1332,7 +1336,7 @@ public class CustomArrayDequeTest {
         deque1.add(20);
         CustomArrayDeque<Integer> deque2 = new CustomArrayDeque<>();
         deque2.add(10);
-        assertFalse(deque1.equals(deque2));
+        assertNotEquals(deque1, deque2);
     }
 
     @Test
@@ -1343,13 +1347,13 @@ public class CustomArrayDequeTest {
         CustomArrayDeque<Integer> deque2 = new CustomArrayDeque<>();
         deque2.add(20);
         deque2.add(10);
-        assertFalse(deque1.equals(deque2));
+        assertNotEquals(deque1, deque2);
     }
 
     @Test
     public void whenEquals_withNull_returnsFalse() {
         CustomArrayDeque<Integer> customArrayDeque = new CustomArrayDeque<>();
         customArrayDeque.add(10);
-        assertFalse(customArrayDeque.equals(null));
+        assertNotEquals(null, customArrayDeque);
     }
 }

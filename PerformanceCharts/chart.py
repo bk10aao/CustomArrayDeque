@@ -2,9 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-# Load datasets
-custom_df = pd.read_csv('CustomArrayDeque_performance.csv', sep=';')
-native_df = pd.read_csv('ArrayDeque_performance.csv', sep=';')
+# Load datasets with updated filenames
+custom_df = pd.read_csv('CustomArrayDequeV1_jmh_performance_pivoted.csv', sep=';')
+native_df = pd.read_csv('ArrayDeque_jmh_performance_pivoted.csv', sep=';')
 
 # Get common columns excluding 'Size'
 common_cols = sorted([
@@ -52,10 +52,10 @@ for method in valid_cols:
 
     # Custom Legend
     legend_elements = [
-        Line2D([0], [0], marker='o', color='none', label='CustomArrayDeque',
+        Line2D([0], [0], marker='o', color='none', label='V1',
                markerfacecolor=color_custom, markeredgecolor=color_custom,
                markersize=8, linestyle='None'),
-        Line2D([0], [0], marker='o', color='none', label='ArrayDeque',
+        Line2D([0], [0], marker='o', color='none', label='JDK',
                markerfacecolor=color_native, markeredgecolor=color_native,
                markersize=8, linestyle='None')
     ]
