@@ -99,49 +99,47 @@ Notes:
 
 # Performance
 
-Below performance is a comparison made at 100,000 operations per method.
+ Comparison table uses the **average** JMH score (ns/op) across sizes 10k–100k
 
-Note: all data is an average of 100 runs. Margins within $\pm 5\%$ ($\le 1.05x$) are considered statistical ties.
-
-| Method                          | Custom (ns) | JDK (JDK) (ns) |            Winner            |  Margin   |
-|:--------------------------------|:------------|:---------------|:----------------------------:|:---------:|
-| `add(E)`                        | 326         | 158            |           **JDK**            |   2.06x   |
-| `addAll(Collection)`            | 143,766     | 234,370        |          **Custom**          |   1.63x   |
-| `addFirst(E)`                   | 117         | 54             |           **JDK**            |   2.17x   |
-| `addLast(E)`                    | 221         | 62             |           **JDK**            |   3.57x   |
-| `clear()`                       | 386         | 45,641         |          **Custom**          |  118.30x  |
-| `contains(Object)`              | 22,047      | 32,142         |          **Custom**          |   1.46x   |
-| `containsAll(Collection)`       | 115,516     | 2,180,316      |          **Custom**          |  18.87x   |
-| `descendingIterator()`          | 99,398      | 78,908         |           **JDK**            |   1.26x   |
-| `element()`                     | 34          | 38             | **Statistically Equivalent** |   1.11x   |
-| `equals(Object)`                | 71,564      | 303            |           **JDK**            |  236.19x  |
-| `getFirst()`                    | 43          | 32             |           **JDK**            |   1.33x   |
-| `getLast()`                     | 40          | 31             |           **JDK**            |   1.27x   |
-| `isEmpty()`                     | 52          | 47             | **Statistically Equivalent** |   1.10x   |
-| `iterator()`                    | 93,027      | 83,062         | **Statistically Equivalent** |   1.12x   |
-| `offer(E)`                      | 125         | 99             |           **JDK**            |   1.26x   |
-| `offerFirst(E)`                 | 113         | 100            | **Statistically Equivalent** |   1.13x   |
-| `offerLast(E)`                  | 270         | 112            |           **JDK**            |   2.41x   |
-| `peek()`                        | 32          | 32             | **Statistically Equivalent** |   1.00x   |
-| `peekFirst()`                   | 32          | 30             | **Statistically Equivalent** |   1.06x   |
-| `peekLast()`                    | 32          | 35             | **Statistically Equivalent** |   1.09x   |
-| `poll()`                        | 166         | 108            |           **JDK**            |   1.54x   |
-| `pollFirst()`                   | 90          | 179            |          **Custom**          |   2.00x   |
-| `pollLast()`                    | 120         | 45             |           **JDK**            |   2.66x   |
-| `pop()`                         | 77          | 83             | **Statistically Equivalent** |   1.08x   |
-| `push(E)`                       | 122         | 225            |          **Custom**          |   1.85x   |
-| `remove()`                      | 67          | 70             | **Statistically Equivalent** |   1.05x   |
-| `remove(Object)`                | 35,387      | 27,754         |           **JDK**            |   1.28x   |
-| `removeAll(Collection)`         | 415,387     | 2,182,815,554  |          **Custom**          | 5,254.90x |
-| `removeFirst()`                 | 82          | 75             | **Statistically Equivalent** |   1.10x   |
-| `removeFirstOccurrence(Object)` | 23,336      | 30,425         |          **Custom**          |   1.30x   |
-| `removeLast()`                  | 57          | 54             | **Statistically Equivalent** |   1.05x   |
-| `removeLastOccurrence(Object)`  | 37,793      | 22,096         |           **JDK**            |   1.71x   |
-| `retainAll(Collection)`         | 382,795     | 2,222,012,637  |          **Custom**          | 5,804.71x |
-| `size()`                        | 44          | 60             |          **Custom**          |   1.35x   |
-| `toArray()`                     | 7,879       | 12,447         |          **Custom**          |   1.58x   |
-| `toArray(T[])`                  | 33,924      | 57,850         |          **Custom**          |   1.71x   |
-| `toString()`                    | 957,173     | 1,891,445      |          **Custom**          |   1.98x   |
+| Method                          | Custom (ns) | JDK (ns)  |            Winner            | Margin |
+|:--------------------------------|:------------|:----------|:----------------------------:|:------:|
+| `add(E)`                        | 224,146     | 362,922   |          **Custom**          | 1.62x  |
+| `addAll(Collection)`            | 94,839      | 167,741   |          **Custom**          | 1.77x  |
+| `addFirst(E)`                   | 151,967     | 254,255   |          **Custom**          | 1.67x  |
+| `addLast(E)`                    | 223,640     | 363,644   |          **Custom**          | 1.63x  |
+| `clear()`                       | 32          | 56        |          **Custom**          | 1.78x  |
+| `contains(Object)`              | 14,592      | 21,105    |          **Custom**          | 1.45x  |
+| `containsAll(Collection)`       | 702,213     | 991,846   |          **Custom**          | 1.41x  |
+| `descendingIterator()`          | 33,691      | 49,063    |          **Custom**          | 1.46x  |
+| `element()`                     | 32          | 65        |          **Custom**          | 2.02x  |
+| `equals(Object)`                | 262,560     | 359,352   |          **Custom**          | 1.37x  |
+| `getFirst()`                    | 32          | 65        |          **Custom**          | 2.00x  |
+| `getLast()`                     | 32          | 66        |          **Custom**          | 2.05x  |
+| `isEmpty()`                     | 36          | 70        |          **Custom**          | 1.97x  |
+| `iterator()`                    | 33,103      | 42,217    |          **Custom**          | 1.28x  |
+| `offer(E)`                      | 221,613     | 271,155   |          **Custom**          | 1.22x  |
+| `offerFirst(E)`                 | 140,523     | 166,344   |          **Custom**          | 1.18x  |
+| `offerLast(E)`                  | 148,519     | 174,098   |          **Custom**          | 1.17x  |
+| `peek()`                        | 40          | 59        |          **Custom**          | 1.46x  |
+| `peekFirst()`                   | 41          | 55        |          **Custom**          | 1.34x  |
+| `peekLast()`                    | 39          | 58        |          **Custom**          | 1.48x  |
+| `poll()`                        | 109,990     | 128,832   |          **Custom**          | 1.17x  |
+| `pollFirst()`                   | 110,071     | 128,485   |          **Custom**          | 1.17x  |
+| `pollLast()`                    | 110,568     | 132,518   |          **Custom**          | 1.20x  |
+| `pop()`                         | 109,347     | 132,193   |          **Custom**          | 1.21x  |
+| `push(E)`                       | 150,868     | 179,258   |          **Custom**          | 1.19x  |
+| `remove()`                      | 109,896     | 132,917   |          **Custom**          | 1.21x  |
+| `remove(Object)`                | 129,862     | 151,925   |          **Custom**          | 1.17x  |
+| `removeAll(Collection)`         | 763,193     | 869,923   | **Statistically Equivalent** | 1.14x  |
+| `removeFirst()`                 | 109,818     | 126,329   | **Statistically Equivalent** | 1.15x  |
+| `removeFirstOccurrence(Object)` | 127,908     | 167,785   |          **Custom**          | 1.31x  |
+| `removeLast()`                  | 111,249     | 131,815   |          **Custom**          | 1.18x  |
+| `removeLastOccurrence(Object)`  | 126,932     | 150,749   |          **Custom**          | 1.19x  |
+| `retainAll(Collection)`         | 709,455     | 829,622   |          **Custom**          | 1.17x  |
+| `size()`                        | 40          | 71        |          **Custom**          | 1.79x  |
+| `toArray()`                     | 6,653       | 7,619     | **Statistically Equivalent** | 1.15x  |
+| `toArray(T[])`                  | 32,613      | 41,216    |          **Custom**          | 1.26x  |
+| `toString()`                    | 880,184     | 1,113,066 |          **Custom**          | 1.26x  |
 
 # Performance Charts
 
